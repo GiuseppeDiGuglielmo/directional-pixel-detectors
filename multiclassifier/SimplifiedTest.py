@@ -63,6 +63,10 @@ if __name__ == "__main__":
 
     print(x_test.shape, y_test.shape)
 
+    N = 10
+    x_test = x_test[:N]
+    y_test = y_test[:N]
+
     # get loss, accuracy
     loss, accuracy = model.evaluate(x_test, y_test)
     print(f"Test loss: {loss}")
@@ -70,6 +74,10 @@ if __name__ == "__main__":
 
     # make predictions
     predictions = model.predict(x_test) 
-    print(predictions)
+    # print(predictions)
     predictions = np.argmax(predictions, axis=1)
-    print(predictions)
+    # print(predictions)
+    
+    # print some to screen
+    for x, y, p in zip(x_test, y_test, predictions):
+        print("x, y, prediction: ", x, y, p)
