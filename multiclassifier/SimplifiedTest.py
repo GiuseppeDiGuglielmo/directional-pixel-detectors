@@ -51,7 +51,7 @@ if __name__ == "__main__":
     model.summary()
 
     # load the model
-    model_file = "/fasic_home/gdg/research/projects/CMS_PIX_28/directional-pixel-detectors/multiclassifier/models/ds8l0_padded_noscaling_keras_d58model.h5"
+    model_file = "/fasic_home/gdg/research/projects/CMS_PIX_28/directional-pixel-detectors/multiclassifier/models/ds8l6_padded_noscaling_keras_d58model.h5"
     model = tf.keras.models.load_model(model_file)
 
     # load example inputs and outputs
@@ -63,9 +63,9 @@ if __name__ == "__main__":
 
     print(x_test.shape, y_test.shape)
 
-    N = 10
-    x_test = x_test[:N]
-    y_test = y_test[:N]
+    #N = 10
+    #x_test = x_test[:N]
+    #y_test = y_test[:N]
 
     # get loss, accuracy
     loss, accuracy = model.evaluate(x_test, y_test)
@@ -79,5 +79,5 @@ if __name__ == "__main__":
     # print(predictions)
 
     # print some to screen
-    for x, y, p in zip(x_test, y_test, predictions):
-        print("x, y, prediction: ", x, y, p)
+    #for x, y, p in zip(x_test, y_test, predictions):
+    #    print("x, y, prediction: ", x, y, p)
