@@ -42,7 +42,7 @@ def CreateModel(shape, nb_classes, first_dense):
     return model
 
 if __name__ == "__main__":
-    
+
     # create model
     shape = 16 # y-profile ... why is this 16 and not 8?
     nb_classes = 3 # positive low pt, negative low pt, high pt
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # load the model
     model_file = "/fasic_home/gdg/research/projects/CMS_PIX_28/directional-pixel-detectors/multiclassifier/models/ds8l0_padded_noscaling_keras_d58model.h5"
     model = tf.keras.models.load_model(model_file)
-    
+
     # load example inputs and outputs
     x_test = pd.read_csv("/asic/projects/C/CMS_PIX_28/benjamin/verilog/workarea/cms28_smartpix_verification/PnR_cms28_smartpix_verification_D/tb/dnn/csv/l6/input_1.csv", header=None)
     x_test = np.array(x_test.values.tolist())
@@ -73,11 +73,11 @@ if __name__ == "__main__":
     print(f"Test accuracy: {accuracy}")
 
     # make predictions
-    predictions = model.predict(x_test) 
+    predictions = model.predict(x_test)
     # print(predictions)
     predictions = np.argmax(predictions, axis=1)
     # print(predictions)
-    
+
     # print some to screen
     for x, y, p in zip(x_test, y_test, predictions):
         print("x, y, prediction: ", x, y, p)
