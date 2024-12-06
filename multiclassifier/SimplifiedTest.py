@@ -16,6 +16,7 @@ from pandas import read_csv
 from sklearn.metrics import classification_report, confusion_matrix, mean_squared_error
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.preprocessing import StandardScaler
+import hls4ml
 
 # TensorFlow imports
 from tensorflow.keras import datasets, layers, models
@@ -87,12 +88,19 @@ if __name__ == "__main__":
         utils._add_supported_quantized_objects(co)
         model = tf.keras.models.load_model(model_file, custom_objects=co)
         # Iterate through each layer and print weights and biases
-        for layer in model.layers:
-            print(f"Layer: {layer.name}")
-            for weight in layer.weights:
-                print(f"  {weight.name}: shape={weight.shape}")
-                print(f"    Values:\n{weight.numpy()}\n")
+        # for layer in model.layers:
+        #     print(f"Layer: {layer.name}")
+        #     for weight in layer.weights:
+        #         print(f"  {weight.name}: shape={weight.shape}")
+        #         print(f"    Values:\n{weight.numpy()}\n")
+        
+        # Generate a simple configuration from keras model
+        config = hls4ml.utils.config_from_keras_model(model, granularity='name')
+        # Convert to an hls model
+        hls_model = hls4ml.converters.convert_from_keras_model(model, hls_config=config, output_dir='test_prj')
+        hls_model.write()
 
+        
     # load example inputs and outputs
     x_test = pd.read_csv("/asic/projects/C/CMS_PIX_28/benjamin/verilog/workarea/cms28_smartpix_verification/PnR_cms28_smartpix_verification_D/tb/dnn/csv/l6/input_1.csv", header=None)
     x_test = np.array(x_test.values.tolist())
