@@ -41,18 +41,51 @@ def CreateModel(shape, nb_classes, first_dense):
     model = Model(inputs=x_in, outputs=x)
     return model
 
+# Fold BatchNormalization in QDense
+def CreateQModel(shape, nb_classes):
+    x = x_in = Input(shape, name="input1")    
+    x = QDenseBatchnorm(58,
+      kernel_quantizer=quantized_bits(4,0,alpha=1),
+      bias_quantizer=quantized_bits(4,0,alpha=1),
+      name="dense1")(x)    
+    x = QActivation("quantized_relu(8,0)", name="relu1")(x)
+    x = QDense(3,
+        kernel_quantizer=quantized_bits(4,0,alpha=1),
+        bias_quantizer=quantized_bits(4,0,alpha=1),
+        name="dense2")(x)
+    x = Activation("linear", name="linear")(x)
+    model = Model(inputs=x_in, outputs=x)
+    return model
+
+
 if __name__ == "__main__":
 
     # create model
     shape = 16 # y-profile ... why is this 16 and not 8?
     nb_classes = 3 # positive low pt, negative low pt, high pt
     first_dense = 58 # shape of first dense layer
-    model = CreateModel(shape, nb_classes, first_dense)
-    model.summary()
+    
+    mtype = "qkeras"
 
-    # load the model
-    model_file = "/fasic_home/gdg/research/projects/CMS_PIX_28/directional-pixel-detectors/multiclassifier/models/ds8l6_padded_noscaling_keras_d58model.h5"
-    model = tf.keras.models.load_model(model_file)
+    # keras
+    if mtype == "keras":
+        # initiate model
+        model = CreateModel(shape, nb_classes, first_dense)
+        model.summary()
+        # load the model
+        model_file = "/fasic_home/gdg/research/projects/CMS_PIX_28/directional-pixel-detectors/multiclassifier/models/ds8l6_padded_noscaling_keras_d58model.h5"
+        model = tf.keras.models.load_model(model_file)
+
+    # qkeras
+    if mtype == "qkeras":
+        # initiate model
+        model = CreateQModel(shape, nb_classes)
+        model.summary()
+        # load the model
+        model_file = "/fasic_home/gdg/research/projects/CMS_PIX_28/directional-pixel-detectors/multiclassifier/models/ds8l6_padded_noscaling_qkeras_foldbatchnorm_d58w4a8model.h5"
+        co = {}
+        utils._add_supported_quantized_objects(co)
+        model = tf.keras.models.load_model(model_file, custom_objects=co)
 
     # load example inputs and outputs
     x_test = pd.read_csv("/asic/projects/C/CMS_PIX_28/benjamin/verilog/workarea/cms28_smartpix_verification/PnR_cms28_smartpix_verification_D/tb/dnn/csv/l6/input_1.csv", header=None)
@@ -62,10 +95,6 @@ if __name__ == "__main__":
     y_test = np.array(y_test.values.tolist()).flatten()
 
     print(x_test.shape, y_test.shape)
-
-    #N = 10
-    #x_test = x_test[:N]
-    #y_test = y_test[:N]
 
     # get loss, accuracy
     loss, accuracy = model.evaluate(x_test, y_test)
