@@ -58,14 +58,6 @@ def CreateQModel(shape, nb_classes):
     model = Model(inputs=x_in, outputs=x)
     return model
 
-# code to convert h5 file to csv
-def h5ToCSV(h5_file_path):
-    with h5py.File(h5_file_path, 'r') as f:
-        for key in f.keys():
-            print(f"layer: {key}")
-            data = f[key][:]
-            np.savetxt(f"{key}.csv", data, delimiter=",")
-
 if __name__ == "__main__":
 
     # create model
