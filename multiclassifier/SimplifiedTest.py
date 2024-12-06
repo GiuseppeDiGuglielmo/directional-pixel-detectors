@@ -4,6 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Standard library imports
 import math
+import h5py
 
 # Third-party imports
 import matplotlib.pyplot as plt
@@ -57,6 +58,13 @@ def CreateQModel(shape, nb_classes):
     model = Model(inputs=x_in, outputs=x)
     return model
 
+# code to convert h5 file to csv
+def h5ToCSV(h5_file_path):
+    with h5py.File(h5_file_path, 'r') as f:
+        for key in f.keys():
+            print(f"layer: {key}")
+            data = f[key][:]
+            np.savetxt(f"{key}.csv", data, delimiter=",")
 
 if __name__ == "__main__":
 
@@ -86,6 +94,12 @@ if __name__ == "__main__":
         co = {}
         utils._add_supported_quantized_objects(co)
         model = tf.keras.models.load_model(model_file, custom_objects=co)
+        # Iterate through each layer and print weights and biases
+        for layer in model.layers:
+            print(f"Layer: {layer.name}")
+            for weight in layer.weights:
+                print(f"  {weight.name}: shape={weight.shape}")
+                print(f"    Values:\n{weight.numpy()}\n")
 
     # load example inputs and outputs
     x_test = pd.read_csv("/asic/projects/C/CMS_PIX_28/benjamin/verilog/workarea/cms28_smartpix_verification/PnR_cms28_smartpix_verification_D/tb/dnn/csv/l6/input_1.csv", header=None)
