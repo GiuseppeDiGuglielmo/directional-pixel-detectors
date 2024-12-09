@@ -159,12 +159,20 @@ if __name__ == "__main__":
     model_file = 'model.h5' if train_and_save == True else model_file # use default value
     history = None
     if train_and_save:
+        
+        # compile
+        model.compile(optimizer=Adam(),
+              loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), # default from_logits=False
+              metrics=[keras.metrics.SparseCategoricalAccuracy()])
+        
+        # early stopping
         es = EarlyStopping(monitor='val_loss',
                            #monitor='val_sparse_categorical_accuracy', 
                            #mode='max', # don't minimize the accuracy!
                            patience=20,
                            restore_best_weights=True)
-
+        
+        # perform training
         history = model.fit(x_test, #X_train,
                             y_test, #y_train,
                             callbacks=[es],
@@ -172,7 +180,8 @@ if __name__ == "__main__":
                             batch_size=1024,
                             validation_split=0.2,
                             shuffle=True,
-                            verbose="auto")
+                            verbose=1)
+
         # save model
         model.save(model_file)
         print('Save:', model_file)
