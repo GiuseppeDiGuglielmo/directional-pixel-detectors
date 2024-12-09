@@ -146,28 +146,50 @@ if __name__ == "__main__":
         hls_model.write()
         # prepare weights
         prepareWeights("test_prj/firmware/weights/")
-
         
     # load example inputs and outputs
     x_test = pd.read_csv("/asic/projects/C/CMS_PIX_28/benjamin/verilog/workarea/cms28_smartpix_verification/PnR_cms28_smartpix_verification_D/tb/dnn/csv/l6/input_1.csv", header=None)
     x_test = np.array(x_test.values.tolist())
-
     y_test = pd.read_csv("/asic/projects/C/CMS_PIX_28/benjamin/verilog/workarea/cms28_smartpix_verification/PnR_cms28_smartpix_verification_D/tb/dnn/csv/l6/layer7_out_ref_int.csv", header=None)
     y_test = np.array(y_test.values.tolist()).flatten()
-
     print(x_test.shape, y_test.shape)
+
+    # decide if train
+    train_and_save = True # <<< PAY ATTENTION <<<
+    model_file = 'model.h5' if train_and_save == True else model_file # use default value
+    history = None
+    if train_and_save:
+        es = EarlyStopping(monitor='val_loss',
+                           #monitor='val_sparse_categorical_accuracy', 
+                           #mode='max', # don't minimize the accuracy!
+                           patience=20,
+                           restore_best_weights=True)
+
+        history = model.fit(x_test, #X_train,
+                            y_test, #y_train,
+                            callbacks=[es],
+                            epochs=10, 
+                            batch_size=1024,
+                            validation_split=0.2,
+                            shuffle=True,
+                            verbose="auto")
+        # save model
+        model.save(model_file)
+        print('Save:', model_file)
+        
+        # load model 
+        co = {}
+        utils._add_supported_quantized_objects(co)
+        model = tf.keras.models.load_model(model_file, custom_objects=co)
 
     # get loss, accuracy
     loss, accuracy = model.evaluate(x_test, y_test)
     print(f"Test loss: {loss}")
     print(f"Test accuracy: {accuracy}")
 
-    # make predictions
-    predictions = model.predict(x_test)
-    # print(predictions)
-    predictions = np.argmax(predictions, axis=1)
-    # print(predictions)
-
-    # print some to screen
-    #for x, y, p in zip(x_test, y_test, predictions):
+    # # make predictions
+    # predictions = model.predict(x_test)
+    # predictions = np.argmax(predictions, axis=1)
+    # # print some to screen
+    # for x, y, p in zip(x_test, y_test, predictions):
     #    print("x, y, prediction: ", x, y, p)
